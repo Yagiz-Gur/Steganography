@@ -1,4 +1,12 @@
-# What is Steganography ?
+# Table of contents
+- [What is Steganography](#what-is-it)
+- [How does it works on images?](#how-does-it-work)
+
+
+
+# <a id="what-is-it">What is Steganography ? </a>
+
+![1](https://miro.medium.com/v2/resize:fit:1400/1*dQyfOpFWmSxrmdOcQgW6OQ.jpeg)
   
 Steganography is the practice of concealing secret information or messages within non-secret data or media, such as images, audio files, or text. Unlike encryption, which focuses on keeping the content of a message secret, steganography aims to hide the very existence of the message.
 
@@ -8,8 +16,10 @@ The hidden message can only be extracted or revealed by someone who possesses th
 
 Steganography has been used throughout history to exchange confidential information, and it continues to have applications in various fields, including digital forensics, data protection, and covert communication.
 
-#  How does it work on images?
+#  <a id="how-does-it-work" >How does it works on images?
+</a >
 
+![2](https://miro.medium.com/v2/resize:fit:1400/1*Gu_RomzVTPMEJ1hfKanRBA.png)
 Steganography works on images by embedding secret data within the pixels of the image without significantly altering its visual appearance. Here's a simplified explanation of how steganography can be applied to images:
 
 1.  **Selecting a carrier image:** A carrier image is chosen as the medium to hide the secret data. It could be any regular image, such as a JPEG or PNG file.
@@ -27,4 +37,6 @@ Steganography works on images by embedding secret data within the pixels of the 
 
 It's important to note that more advanced steganography techniques exist, utilizing complex algorithms and employing various image properties to hide data. Additionally, steganalysis techniques are continually developed to detect and analyze potential steganographic content within images.
 
-# What is LSB ?
+
+
+
