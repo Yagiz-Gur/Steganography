@@ -1,123 +1,89 @@
 from PIL import Image
+import os
 
-def hide_message(image, message):
-    # Convert message to binary
-    binary_message = ''.join(format(ord(char), '08b') for char in message)
-    
-    # Open the image
-    img = Image.open(image)
+def hide_message(image_path, message):
+    img = Image.open(image_path)
     width, height = img.size
-    
-    # Check if message can fit in the image
+
+    message += "/end"  # Add '/end' to mark the end of the message
+
+    binary_message = ''.join(format(ord(char), '08b') for char in message)  # Convert message to binary
+
     if len(binary_message) > width * height * 3:
-        raise ValueError("Message is too large to fit in the image.")
-    
-    # Iterate over each pixel of the image
-    pixel_index = 0
-    for w in range(width):
-        for h in range(height):
-            if pixel_index < len(binary_message):
-                # Get the RGB values of the pixel
-                r, g, b = img.getpixel((w, h))
-                
-                # Modify the least significant bit of each color component
-                r = (r & 0xFE) | int(binary_message[pixel_index])
-                pixel_index += 1
-                
-                if pixel_index < len(binary_message):
-                    g = (g & 0xFE) | int(binary_message[pixel_index])
-                    pixel_index += 1
-                    
-                if pixel_index < len(binary_message):
-                    b = (b & 0xFE) | int(binary_message[pixel_index])
-                    pixel_index += 1
-                
-                # Update the pixel with modified RGB values
-                img.putpixel((w, h), (r, g, b))
-    
-    # Save the stego-image
-    output_image = 'images/output/stego_image.png'
-    img.save(output_image)
-    print("Stego-image saved successfully!")
-    return output_image
+        raise ValueError("Message is too large for the image")
+
+    index = 0
+    for y in range(height):
+        for x in range(width):
+            pixel = list(img.getpixel((x, y)))
+
+            # Hide the message bits in the least significant bit of each color channel (RGB)
+            for i in range(3):
+                if index < len(binary_message):
+                    pixel[i] = pixel[i] & 0b11111110 | int(binary_message[index])
+                    index += 1
+
+            img.putpixel((x, y), tuple(pixel))
+
+    output_path = "images/output/stego_image.png"
+    img.save(output_path)
+    print("Stego-image saved successfully as", output_path)
 
 
-def reveal_message(image):
-    # Open the stego-image
-    img = Image.open(image)
+def reveal_message(image_path):
+    img = Image.open(image_path)
     width, height = img.size
-    
-    # Retrieve the hidden message from the least significant bits of each pixel
+
     binary_message = ""
-    for w in range(width):
-        for h in range(height):
-            r, g, b = img.getpixel((w, h))
-            binary_message += str(r & 0x01)
-            binary_message += str(g & 0x01)
-            binary_message += str(b & 0x01)
-    
-    # Convert binary message back to characters
-    message = ""
-    for i in range(0, len(binary_message), 8):
-        byte = binary_message[i:i+8]
-        char = chr(int(byte, 2))
-        message += char
-    
-    return message
+
+    for y in range(height):
+        for x in range(width):
+            pixel = img.getpixel((x, y))
+
+            # Extract the least significant bit of each color channel (RGB)
+            for i in range(3):
+                binary_message += str(pixel[i] & 1)
+
+            if binary_message[-4:] == "/end":  # Check if the end of message marker is detected
+                binary_message = binary_message[:-4]  # Remove the marker from the message
+                message = ""
+                for i in range(0, len(binary_message), 8):  # Convert binary to characters
+                    char = binary_message[i:i+8]
+                    message += chr(int(char, 2))
+                print("Hidden message extracted successfully:", message)
+                return
+
+    print("End of message not found")
 
 
 def main():
-    option = input("Enter 'hide' to hide a message or 'reveal' to reveal a hidden message: ")
-    
-    if option == 'hide':
-        message = input("Enter the message to hide: ")
-        
+    option = input("Do you want to hide or reveal a hidden message? (hide/reveal): ")
+
+    if option == "hide":
+        message = input("Enter the message you want to hide: ")
+        message = message + "/end"
+        image_dir = "images/input/"
+        image_files = os.listdir(image_dir)
         print("Available carrier images:")
-        import glob
-        carrier_images = glob.glob('images/input/*.png')
-        for i, image in enumerate(carrier_images):
-            print(f"{i+1}. {image}")
-        
-        selected_image = input("Enter the number of the image to use as a carrier: ")
-        selected_image = int(selected_image)
-        
-        if selected_image < 1 or selected_image > len(carrier_images):
-            print("Invalid image selection.")
-            return
-        
-        image = carrier_images[selected_image - 1]
-        
-        try:
-            stego_image = hide_message(image, message)
-            print(f"Stego-image: {stego_image}")
-        except Exception as e:
-            print(f"Error: {str(e)}")
-    
-    elif option == 'reveal':
-        print("Available images to reveal the hidden message:")
-        import glob
-        stego_images = glob.glob('images/output/*.png')
-        for i, image in enumerate(stego_images):
-            print(f"{i+1}. {image}")
-        
-        selected_image = input("Enter the number of the image to reveal the hidden message: ")
-        selected_image = int(selected_image)
-        
-        if selected_image < 1 or selected_image > len(stego_images):
-            print("Invalid image selection.")
-            return
-        
-        image = stego_images[selected_image - 1]
-        
-        try:
-            message = reveal_message(image)
-            print(f"Hidden message: {message}")
-        except Exception as e:
-            print(f"Error: {str(e)}")
-    
+        for i, file in enumerate(image_files):
+            print(i+1, "-", file)
+        image_index = int(input("Select the index of the carrier image: ")) - 1
+        image_path = image_dir + image_files[image_index]
+
+        hide_message(image_path, message)
+    elif option == "reveal":
+        image_dir = "images/input/"
+        image_files = os.listdir(image_dir)
+        print("Available images:")
+        for i, file in enumerate(image_files):
+            print(i+1, "-", file)
+        image_index = int(input("Select the index of the image to extract hidden message: ")) - 1
+        image_path = image_dir + image_files[image_index]
+
+        reveal_message(image_path)
     else:
-        print("Invalid option.")
+        print("Invalid option. Please select 'hide' or 'reveal'.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
