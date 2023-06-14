@@ -1,6 +1,7 @@
 # Table of contents
 - [What is Steganography](#what-is-it)
 - [How does it works on images?](#how-does-it-work)
+- [steganography.py](#steganography.py)
 
 
 
@@ -38,5 +39,5 @@ Steganography works on images by embedding secret data within the pixels of the 
 It's important to note that more advanced steganography techniques exist, utilizing complex algorithms and employing various image properties to hide data. Additionally, steganalysis techniques are continually developed to detect and analyze potential steganographic content within images.
 
 
-
+# <a id="steganography.py">steganography.py</a>
 
